@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo - Placas de Avaliação</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    body {
+      background-color: #f3f4f6;
+      color: #1f2937;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+    .card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 580px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+      color: #111827;
+    }
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #1f2937;
+    }
+    p.subtitle {
+      text-align: center;
+      color: #6b7280;
+      font-size: 0.95rem;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+    input[type="text"],
+    input[type="password"],
+    input[type="url"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      border-color: #2563eb;
+    }
+    .btn {
+      display: inline-block;
+      width: 100%;
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #ffffff;
+      background-color: #2563eb;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: background-color 0.2s;
+    }
+    .btn:hover {
+      background-color: #1d4ed8;
+    }
+    .btn-secondary {
+      background-color: #4b5563;
+      margin-top: 8px;
+    }
+    .btn-secondary:hover {
+      background-color: #374151;
+    }
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      width: auto;
+      border-radius: 4px;
+    }
+    .btn-danger {
+      background-color: #dc2626;
+    }
+    .btn-danger:hover {
+      background-color: #b91c1c;
+    }
+    .alert {
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .alert-error {
+      background-color: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+    .alert-success {
+      background-color: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.875rem;
+    }
+    th, td {
+      padding: 10px 8px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    th {
+      background-color: #f9fafb;
+      font-weight: 600;
+      color: #4b5563;
+    }
+    .table-container {
+      overflow-x: auto;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 6px;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN SECTION -->
+  <div id="login-container" class="card">
+    <h1>Acesso Administrativo</h1>
+    <p class="subtitle">Digite a senha para gerenciar as placas</p>
+
+    <div id="login-error" class="alert alert-error"></div>
+
+    <form id="form-login">
+      <div class="form-group">
+        <label for="admin-password">Senha de Administrador</label>
+        <input type="password" id="admin-password" placeholder="Digite a senha" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn">Entrar</button>
+    </form>
+  </div>
+
+  <!-- ADMIN MAIN PANEL -->
+  <div id="admin-panel" class="card hidden">
+    <div class="top-header">
+      <h2>Gerenciador de Placas</h2>
+      <button id="btn-logout" class="btn btn-secondary btn-sm" style="width: auto;">Sair</button>
+    </div>
+
+    <div id="panel-message" class="alert"></div>
+
+    <!-- REGISTER/EDIT FORM -->
+    <div style="background-color: #f9fafb; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+      <h3 id="form-title" style="font-size: 1.05rem; margin-bottom: 12px;">Cadastrar Nova Placa</h3>
+      <form id="form-placa">
+        <input type="hidden" id="edit-original-id">
+
+        <div class="form-group">
+          <label for="placa-id">ID da Placa (Código na etiqueta/URL)</label>
+          <input type="text" id="placa-id" placeholder="Ex: mesa-01 ou 1002" required>
+        </div>
+
+        <div class="form-group">
+          <label for="placa-nome">Nome do Estabelecimento / Referência</label>
+          <input type="text" id="placa-nome" placeholder="Ex: Restaurante Bom Sabor" required>
+        </div>
+
+        <div class="form-group">
+          <label for="placa-url">Link de Avaliação Google</label>
+          <input type="url" id="placa-url" placeholder="https://g.page/r/..." required>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button type="submit" id="btn-salvar" class="btn">Salvar Placa</button>
+          <button type="button" id="btn-cancelar" class="btn btn-secondary hidden" style="width: auto;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- LIST OF PLATES -->
+    <h3>Placas Cadastradas</h3>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Destino (Google)</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="placas-tbody">
+          <tr>
+            <td colspan="4" style="text-align: center; color: #6b7280; padding: 16px;">Carregando dados...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://zxzryewznxcbcsqmuqzl.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4enJ5ZXd6bnhjYmNzcW11cXpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NjI2MDYsImV4cCI6MjEwNjUzODYwNn0.p0UZxw6A51-7IYdWJ6xxdnvZU3Plbs8miFVUBymq55I';
+    const ADMIN_PASSWORD = '1234';
+
+    // DOM Elements
+    const loginContainer = document.getElementById('login-container');
+    const adminPanel = document.getElementById('admin-panel');
+    const formLogin = document.getElementById('form-login');
+    const adminPasswordInput = document.getElementById('admin-password');
+    const loginError = document.getElementById('login-error');
+    const btnLogout = document.getElementById('btn-logout');
+
+    const formPlaca = document.getElementById('form-placa');
+    const formTitle = document.getElementById('form-title');
+    const editOriginalId = document.getElementById('edit-original-id');
+    const placaIdInput = document.getElementById('placa-id');
+    const placaNomeInput = document.getElementById('placa-nome');
+    const placaUrlInput = document.getElementById('placa-url');
+    const btnCancelar = document.getElementById('btn-cancelar');
+    const placasTbody = document.getElementById('placas-tbody');
+    const panelMessage = document.getElementById('panel-message');
+
+    // Authentication Handler
+    formLogin.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const enteredPassword = adminPasswordInput.value.trim();
+
+      if (enteredPassword === ADMIN_PASSWORD) {
+        sessionStorage.setItem('isAdminAuthenticated', 'true');
+        loginError.style.display = 'none';
+        loginContainer.classList.add('hidden');
+        adminPanel.classList.remove('hidden');
+        carregarPlacas();
+      } else {
+        loginError.textContent = 'Senha incorreta. Tente novamente.';
+        loginError.style.display = 'block';
+      }
+    });
+
+    btnLogout.addEventListener('click', () => {
+      sessionStorage.removeItem('isAdminAuthenticated');
+      adminPasswordInput.value = '';
+      adminPanel.classList.add('hidden');
+      loginContainer.classList.remove('hidden');
+    });
+
+    // Check existing session
+    if (sessionStorage.getItem('isAdminAuthenticated') === 'true') {
+      loginContainer.classList.add('hidden');
+      adminPanel.classList.remove('hidden');
+      carregarPlacas();
+    }
+
+    // Helper functions for notification
+    function showMessage(text, isError = false) {
+      panelMessage.className = `alert ${isError ? 'alert-error' : 'alert-success'}`;
+      panelMessage.textContent = text;
+      panelMessage.style.display = 'block';
+      setTimeout(() => {
+        panelMessage.style.display = 'none';
+      }, 4000);
+    }
+
+    // Fetch and list entries
+    async function carregarPlacas() {
+      placasTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #6b7280; padding: 16px;">Carregando dados...</td></tr>';
+      
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/placas?select=*&order=id.asc`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
+
+        if (!response.ok) throw new Error('Não foi possível obter os dados.');
+
+        const data = await response.json();
+        renderPlacas(data);
+      } catch (err) {
+        placasTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #dc2626; padding: 16px;">Erro ao carregar placas: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderPlacas(lista) {
+      if (!lista || lista.length === 0) {
+        placasTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #6b7280; padding: 16px;">Nenhuma placa cadastrada.</td></tr>';
+        return;
+      }
+
+      placasTbody.innerHTML = '';
+      lista.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight: 600;">${escapeHtml(item.id)}</td>
+          <td>${escapeHtml(item.cliente_nome || '-')}</td>
+          <td><a href="${escapeHtml(item.google_review_url)}" target="_blank" style="color: #2563eb; text-decoration: none; word-break: break-all;">Abrir link</a></td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn btn-sm btn-edit" data-id="${escapeHtml(item.id)}" data-nome="${escapeHtml(item.cliente_nome || '')}" data-url="${escapeHtml(item.google_review_url)}">Editar</button>
+              <button class="btn btn-sm btn-danger btn-delete" data-id="${escapeHtml(item.id)}">Excluir</button>
+            </div>
+          </td>
+        `;
+        placasTbody.appendChild(tr);
+      });
+
+      // Attach actions
+      document.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+          iniciarEdicao(btn.dataset.id, btn.dataset.nome, btn.dataset.url);
+        });
+      });
+
+      document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', () => {
+          removerPlaca(btn.dataset.id);
+        });
+      });
+    }
+
+    // Edit logic
+    function iniciarEdicao(id, nome, url) {
+      formTitle.textContent = `Editar Placa (${id})`;
+      editOriginalId.value = id;
+      placaIdInput.value = id;
+      placaIdInput.disabled = true; // Supabase Primary Key
+      placaNomeInput.value = nome;
+      placaUrlInput.value = url;
+      btnCancelar.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    btnCancelar.addEventListener('click', resetForm);
+
+    function resetForm() {
+      formTitle.textContent = 'Cadastrar Nova Placa';
+      editOriginalId.value = '';
+      placaIdInput.value = '';
+      placaIdInput.disabled = false;
+      placaNomeInput.value = '';
+      placaUrlInput.value = '';
+      btnCancelar.classList.add('hidden');
+    }
+
+    // Save or update plaque
+    formPlaca.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const originalId = editOriginalId.value;
+      const id = placaIdInput.value.trim();
+      const nome = placaNomeInput.value.trim();
+      const url = placaUrlInput.value.trim();
+
+      if (!id || !url) {
+        showMessage('Preencha os campos obrigatórios.', true);
+        return;
+      }
+
+      try {
+        if (originalId) {
+          // Update existing
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/placas?id=eq.${encodeURIComponent(originalId)}`, {
+            method: 'PATCH',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              cliente_nome: nome,
+              google_review_url: url,
+              ativo: true
+            })
+          });
+
+          if (!res.ok) throw new Error('Falha ao atualizar registro.');
+          showMessage('Placa atualizada com sucesso!');
+        } else {
+          // Insert new
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/placas`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({
+              id: id,
+              cliente_nome: nome,
+              google_review_url: url,
+              ativo: true
+            })
+          });
+
+          if (!res.ok) throw new Error('ID já existe ou ocorreu um erro de inserção.');
+          showMessage('Placa cadastrada com sucesso!');
+        }
+
+        resetForm();
+        carregarPlacas();
+      } catch (err) {
+        showMessage(err.message, true);
+      }
+    });
+
+    // Delete item
+    async function removerPlaca(id) {
+      if (!confirm(`Deseja realmente excluir a placa com ID "${id}"?`)) return;
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/placas?id=eq.${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
+
+        if (!res.ok) throw new Error('Erro ao deletar placa.');
+        showMessage(`Placa "${id}" excluída com sucesso.`);
+        carregarPlacas();
+      } catch (err) {
+        showMessage(err.message, true);
+      }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
